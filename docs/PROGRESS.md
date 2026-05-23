@@ -5,7 +5,7 @@ Tracking module-by-module completion. Updated after each commit.
 ## Modules
 
 - [x] **M0** — Bootstrap Next.js + landing
-- [ ] **M1** — DB schema, RLS, magic-link auth, seed
+- [x] **M1** — DB schema, RLS, magic-link auth, seed
 - [ ] **M2** — Tavus persona EN+ES, KB, setup script
 - [ ] **M3** — Bare conversational loop (no tools)
 - [ ] **M4** — Read-side tools (verify_identity, get_policy_details, validate_coverage)
