@@ -26,8 +26,10 @@ describe("schema migration 0001_init.sql", () => {
     }
   });
 
-  it("claims.claim_number is generated with CL- prefix", () => {
-    expect(sql).toMatch(/'CL-' \|\| to_char\(created_at, 'YYYY'\)/);
+  it("claims.claim_number is generated with CL- prefix via trigger", () => {
+    expect(sql).toMatch(/set_claim_number/);
+    expect(sql).toMatch(/'CL-' \|\|/);
+    expect(sql).toMatch(/claims_set_claim_number/);
   });
 
   it("uses PostGIS geography(point,4326) for spatial columns", () => {

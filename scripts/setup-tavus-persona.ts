@@ -24,7 +24,7 @@ import {
 } from "@/lib/tavus/persona";
 import { tavusTools } from "@/lib/tavus/tools-schema";
 
-function buildContext(locale: Locale): string {
+function buildContext(_locale: Locale): string {
   const objectives = loadObjectives();
   const guardrails = loadGuardrails();
   const kb = [

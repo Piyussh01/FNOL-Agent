@@ -156,15 +156,14 @@ export const tavusTools: TavusToolSpec[] = [
     function: {
       name: "request_photo_upload",
       description:
-        "Generate signed Storage upload URLs and send the caller an SMS / email link.",
+        "Generate signed Storage upload URLs and email the caller a link.",
       parameters: {
         type: "object",
         properties: {
           ...claimIdParam,
           photo_kinds: { type: "array", items: { type: "string" } },
-          send_via: { type: "string", enum: ["sms", "email", "both"] },
         },
-        required: ["claim_id", "photo_kinds", "send_via"],
+        required: ["claim_id", "photo_kinds"],
         additionalProperties: false,
       },
     },
@@ -297,17 +296,11 @@ export const tavusTools: TavusToolSpec[] = [
     type: "function",
     function: {
       name: "send_summary",
-      description: "Send the post-submission summary via SMS, email, or both.",
+      description: "Email the post-submission summary to the caller.",
       parameters: {
         type: "object",
-        properties: {
-          ...claimIdParam,
-          channels: {
-            type: "array",
-            items: { type: "string", enum: ["sms", "email"] },
-          },
-        },
-        required: ["claim_id", "channels"],
+        properties: { ...claimIdParam },
+        required: ["claim_id"],
         additionalProperties: false,
       },
     },

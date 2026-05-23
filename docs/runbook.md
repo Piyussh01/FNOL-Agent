@@ -15,8 +15,7 @@ in the repo.
 | `TAVUS_WEBHOOK_SECRET`         | HMAC for `/api/tavus/webhook`.            |
 | `ANTHROPIC_API_KEY`            | Chat + vision.                            |
 | `TOOL_JWT_SECRET`              | Signs JWTs passed to Tavus tool calls.    |
-| `TWILIO_AUTH_TOKEN`            | SMS.                                      |
-| `RESEND_API_KEY`               | Email.                                    |
+| `RESEND_API_KEY`               | Email (photo link + summary).             |
 | `UPSTASH_REDIS_REST_TOKEN`     | Rate limiter.                             |
 
 ## Rollback

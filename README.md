@@ -10,7 +10,7 @@ CVI agent who walks them through filing an auto / home / renters claim end-to-en
 - Supabase (Postgres + RLS, Auth, Storage, Edge Functions, Realtime, PostGIS)
 - Tavus CVI for video; Daily transport
 - Anthropic Claude Sonnet (chat + vision)
-- Twilio SMS, Resend email, Upstash rate limit
+- Resend email, Upstash rate limit
 - PostHog + Helicone
 
 ## Quickstart

@@ -1,21 +1,6 @@
-import { sendMagicLink } from "@/lib/auth/magic-link";
-import { redirect } from "next/navigation";
 import { Shield, Mail } from "lucide-react";
 import Link from "next/link";
-
-async function loginAction(formData: FormData) {
-  "use server";
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const next = String(formData.get("next") ?? "/claim/new");
-  if (!email || !email.includes("@")) {
-    redirect(`/login?error=invalid_email&next=${encodeURIComponent(next)}`);
-  }
-  const res = await sendMagicLink(email, next);
-  if (!res.ok) {
-    redirect(`/login?error=${encodeURIComponent(res.error)}&next=${encodeURIComponent(next)}`);
-  }
-  redirect(`/login?sent=1&email=${encodeURIComponent(email)}&next=${encodeURIComponent(next)}`);
-}
+import LoginForm from "@/components/LoginForm";
 
 export default function LoginPage({
   searchParams,
@@ -55,27 +40,7 @@ export default function LoginPage({
             <p className="mt-2 text-sm text-acme-700">
               No password needed — we&apos;ll email you a one-tap link.
             </p>
-            <form action={loginAction} className="mt-6 space-y-3">
-              <input type="hidden" name="next" value={next} />
-              <label className="block text-sm font-semibold" htmlFor="email">
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                autoComplete="email"
-                className="w-full rounded-md border border-acme-200 px-3 py-2 outline-none focus:ring-2 focus:ring-acme-600"
-                placeholder="you@example.com"
-              />
-              {searchParams.error && (
-                <p className="text-sm text-red-600">{searchParams.error}</p>
-              )}
-              <button type="submit" className="btn-primary w-full">
-                Send sign-in link
-              </button>
-            </form>
+            <LoginForm next={next} initialError={searchParams.error} />
           </>
         )}
       </div>

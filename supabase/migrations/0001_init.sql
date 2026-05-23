@@ -126,9 +126,7 @@ create table properties (
 
 create table claims (
   id uuid primary key default gen_random_uuid(),
-  claim_number text generated always as (
-    'CL-' || to_char(created_at, 'YYYY') || '-' || substr(id::text, 1, 8)
-  ) stored,
+  claim_number text unique,  -- filled by trigger; see below.
   policy_id uuid references policies(id) on delete set null,
   user_id uuid not null references users(id) on delete cascade,
   kind claim_kind not null,
@@ -156,6 +154,24 @@ $$;
 create trigger claims_set_updated_at
   before update on claims
   for each row execute function public.set_updated_at();
+
+-- claim_number generator: BEFORE INSERT trigger (generated columns can't use
+-- non-immutable expressions like to_char(timestamptz, ...)).
+create or replace function public.set_claim_number()
+returns trigger language plpgsql as $$
+begin
+  if new.claim_number is null then
+    new.claim_number :=
+      'CL-' || to_char(coalesce(new.created_at, now()) at time zone 'UTC', 'YYYY')
+      || '-' || substr(new.id::text, 1, 8);
+  end if;
+  return new;
+end;
+$$;
+
+create trigger claims_set_claim_number
+  before insert on claims
+  for each row execute function public.set_claim_number();
 
 create table claim_parties (
   id uuid primary key default gen_random_uuid(),

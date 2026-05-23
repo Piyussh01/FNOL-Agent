@@ -1,5 +1,7 @@
 import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+// Use the Cloudflare/Edge entry point so the middleware build doesn't pull
+// in Node-only APIs (process.version) from @upstash/redis/nodejs.
+import { Redis } from "@upstash/redis/cloudflare";
 
 // Per-route rate limiters. No-op (always-allow) when Upstash env vars are
 // missing, so dev / tests don't need Redis.

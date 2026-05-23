@@ -51,3 +51,5 @@ supabase/.temp
 test-results/
 playwright-report/
 playwright/.cache/
+
+todo.md

@@ -10,7 +10,7 @@ Tracking module-by-module completion. Updated after each commit.
 - [x] **M3** — Bare conversational loop (no tools)
 - [x] **M4** — Read-side tools (verify_identity, get_policy_details, validate_coverage)
 - [x] **M5** — Write-side tools + state machine
-- [x] **M6** — Photo capture + upload (Twilio SMS)
+- [x] **M6** — Photo capture + upload (Resend email)
 - [x] **M7** — Claude Vision pipeline
 - [x] **M8** — Partner adapters (mock) + booking tools
 - [x] **M9** — Estimate, submit, summary tools
@@ -30,7 +30,6 @@ Tracking module-by-module completion. Updated after each commit.
 | Tavus       | provided       | Persona to be created via M2 script       |
 | Supabase    | provided       | Migrations apply in M1                    |
 | Anthropic   | provided       | Used for chat (M11) + vision (M7)         |
-| Twilio      | not provisioned | SMS adapter falls back to console + log   |
 | Resend      | not provisioned | Email adapter falls back to console + log |
 | Upstash     | not provisioned | Rate limiter no-ops; M16 toggles on       |
 | PostHog     | not provisioned | Optional; env-gated                       |

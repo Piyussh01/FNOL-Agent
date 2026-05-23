@@ -1,20 +1,18 @@
 import { z } from "zod";
 import { registerTool } from "../registry";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendSms } from "@/lib/notifications/twilio";
 import { sendEmail } from "@/lib/notifications/resend";
 import { logToolEvent } from "./_events";
 
 const Input = z.object({
   claim_id: z.string().uuid(),
-  channels: z.array(z.enum(["sms", "email"])).min(1),
 });
 
-type Output = { sent: boolean; channels_used: string[] };
+type Output = { sent: boolean };
 
 export default registerTool<z.infer<typeof Input>, Output>({
   name: "send_summary",
-  description: "Send post-submission summary.",
+  description: "Email the post-submission summary to the caller.",
   inputSchema: Input,
   async run(input, ctx) {
     const admin = createAdminClient();
@@ -26,7 +24,7 @@ export default registerTool<z.infer<typeof Input>, Output>({
         .single(),
       admin
         .from("users")
-        .select("phone, email, name, preferred_lang")
+        .select("email, name, preferred_lang")
         .eq("id", ctx.caller.user_id)
         .single(),
       admin
@@ -56,10 +54,6 @@ export default registerTool<z.infer<typeof Input>, Output>({
       )
       .join("\n");
 
-    const smsBody = isEs
-      ? `Acme: tu reclamo ${claim.claim_number} fue enviado. ${estimateLine}\nResumen: ${summaryUrl}`
-      : `Acme: claim ${claim.claim_number} submitted. ${estimateLine}\nSummary: ${summaryUrl}`;
-
     const emailHtml = `
 <p>${isEs ? "Hola" : "Hi"} ${user?.name ?? ""},</p>
 <p>${isEs ? "Tu reclamo está enviado." : "Your claim is submitted."}</p>
@@ -74,24 +68,24 @@ export default registerTool<z.infer<typeof Input>, Output>({
 <p><a href="${summaryUrl}">${isEs ? "Ver resumen completo" : "View full summary"}</a></p>
     `.trim();
 
-    const used: string[] = [];
-    if (input.channels.includes("sms") && user?.phone) {
-      const r = await sendSms({ to: user.phone, body: smsBody });
-      if (r.ok) used.push("sms");
-    }
-    if (input.channels.includes("email") && user?.email) {
+    const textBody = isEs
+      ? `Acme: tu reclamo ${claim.claim_number} fue enviado. ${estimateLine}\n${bookings}\n${summaryUrl}`
+      : `Acme: claim ${claim.claim_number} submitted. ${estimateLine}\n${bookings}\n${summaryUrl}`;
+
+    let sent = false;
+    if (user?.email) {
       const r = await sendEmail({
         to: user.email,
         subject: isEs
           ? `Reclamo Acme ${claim.claim_number} enviado`
           : `Acme claim ${claim.claim_number} submitted`,
         html: emailHtml,
-        text: `${smsBody}\n\n${bookings}`,
+        text: textBody,
       });
-      if (r.ok) used.push("email");
+      sent = r.ok;
     }
 
-    await logToolEvent("send_summary", { claim_id: input.claim_id }, { used });
-    return { sent: used.length > 0, channels_used: used };
+    await logToolEvent("send_summary", { claim_id: input.claim_id }, { sent });
+    return { sent };
   },
 });

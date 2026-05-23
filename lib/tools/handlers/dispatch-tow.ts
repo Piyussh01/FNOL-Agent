@@ -2,7 +2,7 @@ import { z } from "zod";
 import { registerTool } from "../registry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { mockTowProvider } from "@/lib/partners/tow";
-import { sendSms } from "@/lib/notifications/twilio";
+import { sendEmail } from "@/lib/notifications/resend";
 import { logToolEvent } from "./_events";
 import { advanceClaim } from "@/lib/claims/advance";
 
@@ -42,19 +42,25 @@ export default registerTool<z.infer<typeof Input>, Output>({
       },
     });
 
-    // Send SMS confirmation if we have the user's phone.
+    // Email confirmation to the caller.
     const { data: user } = await admin
       .from("users")
-      .select("phone, preferred_lang")
+      .select("email, preferred_lang")
       .eq("id", ctx.caller.user_id)
       .single();
-    if (user?.phone) {
+    if (user?.email) {
       const isEs = user.preferred_lang === "es";
-      await sendSms({
-        to: user.phone,
-        body: isEs
-          ? `Acme: grúa confirmada con ${result.vendor}, ETA ${result.eta_minutes} min. Confirmación ${result.confirmation_code}. Llamada de despacho: ${result.dispatch_phone}.`
-          : `Acme: tow confirmed with ${result.vendor}, ETA ${result.eta_minutes} min. Confirmation ${result.confirmation_code}. Dispatch: ${result.dispatch_phone}.`,
+      const subject = isEs
+        ? `Acme: grúa confirmada (${result.confirmation_code})`
+        : `Acme: tow confirmed (${result.confirmation_code})`;
+      const body = isEs
+        ? `Tu grúa está confirmada con ${result.vendor}. ETA ${result.eta_minutes} minutos. Línea de despacho: ${result.dispatch_phone}.`
+        : `Your tow is confirmed with ${result.vendor}. ETA ${result.eta_minutes} minutes. Dispatch line: ${result.dispatch_phone}.`;
+      await sendEmail({
+        to: user.email,
+        subject,
+        html: `<p>${body}</p>`,
+        text: body,
       });
     }
 
