@@ -77,8 +77,8 @@ export default registerTool<z.infer<typeof Input>, Output>({
       const r = await sendEmail({
         to: user.email,
         subject: isEs
-          ? `Reclamo Acme ${claim.claim_number} enviado`
-          : `Acme claim ${claim.claim_number} submitted`,
+          ? `Reclamo Alchemy ${claim.claim_number} enviado`
+          : `Alchemy claim ${claim.claim_number} submitted`,
         html: emailHtml,
         text: textBody,
       });

@@ -14,7 +14,7 @@ export default function LoginPage({
     <main className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-12">
       <Link href="/" className="mb-8 inline-flex items-center gap-2 text-acme-700">
         <Shield className="h-5 w-5 text-acme-600" aria-hidden />
-        <span className="font-bold">Acme Insurance</span>
+        <span className="font-bold">Alchemy Insurance</span>
       </Link>
 
       <div className="rounded-2xl border border-acme-100 bg-white p-8 shadow-sm">

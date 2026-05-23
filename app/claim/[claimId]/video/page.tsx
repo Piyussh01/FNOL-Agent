@@ -37,7 +37,7 @@ export default async function VideoClaimPage({
     <main className="mx-auto max-w-4xl px-4 py-6">
       <Link href="/" className="mb-4 inline-flex items-center gap-2 text-acme-700">
         <Shield className="h-5 w-5 text-acme-600" aria-hidden />
-        <span className="font-bold">Acme Insurance</span>
+        <span className="font-bold">Alchemy Insurance</span>
       </Link>
 
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">

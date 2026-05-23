@@ -49,7 +49,7 @@ export default async function AdminPage() {
       <div className="mb-8 flex items-center justify-between">
         <Link href="/" className="inline-flex items-center gap-2 text-acme-700">
           <Shield className="h-5 w-5 text-acme-600" aria-hidden />
-          <span className="font-bold">Acme Insurance — Ops</span>
+          <span className="font-bold">Alchemy Insurance — Ops</span>
         </Link>
         <p className="text-xs text-acme-700">Last 24h · refresh to update</p>
       </div>

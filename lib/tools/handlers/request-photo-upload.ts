@@ -72,14 +72,14 @@ export default registerTool<z.infer<typeof Input>, Output>({
     const lang = user?.preferred_lang === "es" ? "es" : "en";
     const body =
       lang === "es"
-        ? `Acme: tu agente Sam te pide unas fotos del daño. Abre este enlace para tomarlas: ${link} (válido 1 hora).`
-        : `Acme: Sam asked for a few photos of the damage. Open this link to take them: ${link} (good for 1 hour).`;
+        ? `Alchemy: tu agente Sam te pide unas fotos del daño. Abre este enlace para tomarlas: ${link} (válido 1 hora).`
+        : `Alchemy: Sam asked for a few photos of the damage. Open this link to take them: ${link} (good for 1 hour).`;
 
     let linkSent = false;
     if (user?.email) {
       const r = await sendEmail({
         to: user.email,
-        subject: lang === "es" ? "Fotos para tu reclamo Acme" : "Photos for your Acme claim",
+        subject: lang === "es" ? "Fotos para tu reclamo Alchemy" : "Photos for your Alchemy claim",
         html: `<p>${body}</p><p><a href="${link}">${link}</a></p>`,
         text: `${body}\n\n${link}`,
       });

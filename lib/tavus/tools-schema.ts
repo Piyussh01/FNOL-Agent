@@ -19,7 +19,7 @@ export type TavusToolSpec = {
 };
 
 const claimIdParam = {
-  claim_id: { type: "string", description: "Acme internal claim UUID" },
+  claim_id: { type: "string", description: "Alchemy internal claim UUID" },
 };
 
 export const tavusTools: TavusToolSpec[] = [
@@ -28,7 +28,7 @@ export const tavusTools: TavusToolSpec[] = [
     function: {
       name: "verify_identity",
       description:
-        "Verify the caller's identity against Acme records. Call before any policy lookup.",
+        "Verify the caller's identity against Alchemy records. Call before any policy lookup.",
       parameters: {
         type: "object",
         properties: {

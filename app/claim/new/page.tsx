@@ -1,7 +1,7 @@
 import { getCurrentUser } from "@/lib/auth/magic-link";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Video, MessageSquare, Shield, Car, Home, Package } from "lucide-react";
+import { Shield, Car, Home, Package } from "lucide-react";
 
 export default async function NewClaimPage() {
   const user = await getCurrentUser();
@@ -10,47 +10,24 @@ export default async function NewClaimPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
+    <main className="mx-auto max-w-2xl px-5 py-10 sm:px-6 sm:py-12">
       <Link href="/" className="mb-8 inline-flex items-center gap-2 text-acme-700">
         <Shield className="h-5 w-5 text-acme-600" aria-hidden />
-        <span className="font-bold">Acme Insurance</span>
+        <span className="font-bold">Alchemy Insurance</span>
       </Link>
 
-      <h1 className="text-3xl font-bold">Let&apos;s file your claim</h1>
-      <p className="mt-2 text-acme-700">
+      <h1 className="text-2xl font-bold sm:text-3xl">Let&apos;s file your claim</h1>
+      <p className="mt-2 text-sm text-acme-700 sm:text-base">
         Pick how you&apos;d like to talk to Sam. You can switch modes any time.
       </p>
 
-      <h2 className="mt-10 text-sm font-semibold uppercase tracking-wide text-acme-700">
+      <h2 className="mt-8 text-xs font-semibold uppercase tracking-wide text-acme-700 sm:mt-10 sm:text-sm">
         What happened?
       </h2>
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <ClaimKindCard kind="auto" icon={<Car className="h-5 w-5" aria-hidden />} label="Auto" />
         <ClaimKindCard kind="home" icon={<Home className="h-5 w-5" aria-hidden />} label="Home" />
         <ClaimKindCard kind="renters" icon={<Package className="h-5 w-5" aria-hidden />} label="Renters" />
-      </div>
-
-      <h2 className="mt-10 text-sm font-semibold uppercase tracking-wide text-acme-700">
-        How would you like to talk to Sam?
-      </h2>
-      <p className="mt-2 text-xs text-acme-700">
-        Pick a kind above, then we&apos;ll route you to the right Sam.
-      </p>
-      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-acme-200 bg-white p-4">
-          <Video className="h-5 w-5 text-acme-600" aria-hidden />
-          <p className="mt-3 font-semibold">Video</p>
-          <p className="mt-1 text-sm text-acme-700">
-            Face to face. Best when you can show damage on camera.
-          </p>
-        </div>
-        <div className="rounded-xl border border-acme-200 bg-white p-4">
-          <MessageSquare className="h-5 w-5 text-acme-600" aria-hidden />
-          <p className="mt-3 font-semibold">Chat</p>
-          <p className="mt-1 text-sm text-acme-700">
-            Type instead. Good for quiet places or slow connections.
-          </p>
-        </div>
       </div>
 
       <p className="mt-10 text-xs text-acme-700">

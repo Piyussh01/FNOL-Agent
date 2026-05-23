@@ -48,7 +48,7 @@ export default function ClaimVideoSession({
       <iframe
         ref={iframeRef}
         src={conversationUrl}
-        title="Sam — Acme Insurance"
+        title="Sam — Alchemy Insurance"
         allow="camera; microphone; autoplay; fullscreen; display-capture"
         className="block aspect-video w-full"
       />

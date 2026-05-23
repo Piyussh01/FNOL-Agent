@@ -43,7 +43,7 @@ export default async function ChatClaimPage({
       <div className="mb-4 flex items-center justify-between">
         <Link href="/" className="inline-flex items-center gap-2 text-acme-700">
           <Shield className="h-5 w-5 text-acme-600" aria-hidden />
-          <span className="font-bold">Acme Insurance</span>
+          <span className="font-bold">Alchemy Insurance</span>
         </Link>
         <ModalitySwitcher claimId={claim.id} current="chat" />
       </div>

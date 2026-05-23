@@ -75,7 +75,7 @@ export default async function PhotosPage({
     <main className="mx-auto max-w-md px-4 py-8">
       <Link href="/" className="mb-6 inline-flex items-center gap-2 text-acme-700">
         <Shield className="h-5 w-5 text-acme-600" aria-hidden />
-        <span className="font-bold">Acme Insurance</span>
+        <span className="font-bold">Alchemy Insurance</span>
       </Link>
       <h1 className="text-2xl font-bold">Photos for claim {claim.claim_number}</h1>
       <p className="mt-2 text-sm text-acme-700">

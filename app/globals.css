@@ -4,7 +4,7 @@
 
 :root {
   --background: 255 255 255;
-  --foreground: 20 37 68;
+  --foreground: 74 0 40;
 }
 
 html,
@@ -25,5 +25,12 @@ body {
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center rounded-lg border border-acme-200 bg-white px-6 py-3 text-base font-semibold text-acme-900 shadow-sm transition hover:bg-acme-50;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-soft-pulse {
+    animation: none !important;
   }
 }

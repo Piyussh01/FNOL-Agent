@@ -61,7 +61,7 @@ self.addEventListener("fetch", (event) => {
 // Push notifications fired by /api/push (M14).
 self.addEventListener("push", (event) => {
   const data = event.data?.json() ?? {};
-  const title = data.title || "Acme update";
+  const title = data.title || "Alchemy update";
   const body = data.body || "You have an update on your claim.";
   event.waitUntil(
     self.registration.showNotification(title, {
