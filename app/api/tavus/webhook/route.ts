@@ -108,6 +108,11 @@ export async function POST(req: NextRequest) {
       const result = await dispatchToolCall(event, sessionRow);
       return NextResponse.json(result);
     }
+    case "conversation.perception_analysis":
+    case "conversation.perception": {
+      await handlePerception(event, sessionRow);
+      break;
+    }
     default:
       // Other event types (utterance, perception, replica_joined, etc.)
       // are persisted but not acted on yet.
@@ -197,6 +202,44 @@ async function dispatchToolCall(
       error: (err as Error).message,
     };
   }
+}
+
+// Raven perception events: surface distress / unsafe-environment signals.
+// We look for a numeric distress score in the payload. Threshold from
+// guardrails.json is 0.7.
+const DISTRESS_THRESHOLD = 0.7;
+
+async function handlePerception(
+  event: TavusEvent,
+  sessionRow: { id: string; claim_id: string | null } | null,
+) {
+  const props = (event.properties ?? event.data ?? {}) as Record<string, unknown>;
+  const score = extractDistressScore(props);
+
+  if (score !== null && score >= DISTRESS_THRESHOLD && sessionRow) {
+    const admin = createAdminClient();
+    await admin.from("sessions").update({ distress_flagged: true }).eq("id", sessionRow.id);
+    await admin.from("events").insert({
+      claim_id: sessionRow.claim_id,
+      session_id: sessionRow.id,
+      type: "distress_flag",
+      payload_json: { score, raw: props },
+    });
+    log.warn("distress_flag", { session_id: sessionRow.id, score });
+  }
+}
+
+function extractDistressScore(props: Record<string, unknown>): number | null {
+  const candidates = [
+    props.distress_score,
+    props.distress,
+    (props.emotion as Record<string, unknown> | undefined)?.distress,
+    (props.scores as Record<string, unknown> | undefined)?.distress,
+  ];
+  for (const c of candidates) {
+    if (typeof c === "number" && c >= 0 && c <= 1) return c;
+  }
+  return null;
 }
 
 function safeJson(s: string): Record<string, unknown> {
