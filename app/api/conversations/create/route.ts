@@ -65,6 +65,23 @@ export async function POST(req: NextRequest) {
     claimId = data.id;
   }
 
+  // 1b. Memory recall: any open claims (excluding the one we just made)?
+  const { data: openClaims } = await admin
+    .from("claims")
+    .select("id, claim_number, kind, stage, updated_at")
+    .eq("user_id", user.id)
+    .not("stage", "in", "(submitted,closed)")
+    .neq("id", claimId)
+    .order("updated_at", { ascending: false })
+    .limit(3);
+
+  const memoryHint =
+    openClaims && openClaims.length > 0
+      ? `Returning user. They have ${openClaims.length} open claim(s): ${openClaims
+          .map((c) => `${c.claim_number} (${c.kind}, stage=${c.stage})`)
+          .join("; ")}. Offer to resume one of these before starting fresh.`
+      : `First-time or no open claims for this user.`;
+
   // 2. Open a session row.
   const { data: session, error: sessionError } = await admin
     .from("sessions")
@@ -117,9 +134,11 @@ export async function POST(req: NextRequest) {
       conversation_name: `claim:${claimId}`,
       conversational_context: JSON.stringify({
         claim_id: claimId,
+        user_id: user.id,
         user_name: user.name,
         tool_jwt: token,
         locale,
+        memory_hint: memoryHint,
       }),
       callback_url: `${appUrl}/api/tavus/webhook`,
       properties: {
