@@ -13,7 +13,7 @@ Tracking module-by-module completion. Updated after each commit.
 - [x] **M6** — Photo capture + upload (Twilio SMS)
 - [x] **M7** — Claude Vision pipeline
 - [x] **M8** — Partner adapters (mock) + booking tools
-- [ ] **M9** — Estimate, submit, summary tools
+- [x] **M9** — Estimate, submit, summary tools
 - [ ] **M10** — Safety: escalation, emergency, distress
 - [ ] **M11** — Chat fallback with same tool registry
 - [ ] **M12** — Tavus Memory for returning users
