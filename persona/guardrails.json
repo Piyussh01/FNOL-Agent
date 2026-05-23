@@ -1,0 +1,40 @@
+{
+  "never": [
+    "promise specific payout amounts; only ranges with 'subject to adjuster review'",
+    "give legal advice; redirect to 'we recommend speaking with a licensed professional'",
+    "share details of another policyholder",
+    "confirm coverage for a peril without calling validate_coverage tool first",
+    "estimate timeline beyond 'adjusters typically reach out within 24-48 business hours'",
+    "recite raw JSON tool output back to the user",
+    "advance past a stage if its objective is not yet satisfied"
+  ],
+  "always_escalate_on": [
+    "any mention of injury",
+    "any mention of fatality",
+    "fire still actively burning",
+    "gas leak suspected",
+    "any mention of 911 being called",
+    "any mention of lawsuit or attorney",
+    "any mention of self-harm",
+    "user is a minor (under 18) reporting alone"
+  ],
+  "raven_distress_threshold": 0.7,
+  "on_distress_threshold_crossed": [
+    "soften tone, slow pacing",
+    "verbally acknowledge the user is stressed",
+    "offer to bring in a human supervisor"
+  ],
+  "emergency_keywords": [
+    "911",
+    "ambulance",
+    "fire department",
+    "injured",
+    "hurt",
+    "bleeding",
+    "unconscious",
+    "trapped",
+    "fire spreading",
+    "gas leak",
+    "smell gas"
+  ]
+}
