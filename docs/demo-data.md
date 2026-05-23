@@ -100,8 +100,10 @@ The default policy that gets written:
 | Default vehicle | 2022 Honda Civic (VIN + plate derived from the same uuid suffix) |
 
 `users.name` is derived from the local part of the email (e.g. `bob@example.com`
-→ `bob`). `verify_identity` accepts a first-name match, so saying "Hi, I'm
-Bob" will pass verification against an auto-generated account.
+→ `bob`), but **`verify_identity` no longer checks the name** — it trusts
+whatever the caller says because the session is already pinned to a specific
+`user_id` by the JWT. The name and DOB/SSN values are written to the
+`events` audit log only.
 
 If you want a *different* default (e.g. add a home policy, change deductibles),
 edit the `insert into public.policies` block in
@@ -137,8 +139,10 @@ place once it has been applied to a shared environment.
   fabricates a policy purely so the FNOL happy-path is testable end-to-end.
 - The default is **auto** because that's the primary demo scenario; new
   users trying to file home or renters will fail coverage validation.
-- `users.name` is the verification source of truth — no real DOB/SSN. Prod
-  would compare a hashed SSN/DOB; demo accepts a first-name match.
+- The authenticated session (JWT → `ctx.caller.user_id`) is the real
+  verification gate. `verify_identity` accepts any name and any DOB/SSN
+  string in the demo and only logs them for audit. Prod would compare a
+  hashed SSN/DOB and the legal name on file.
 - Service-role writes from tool handlers always re-check ownership against
   `claim.user_id` after JWT verification (defense in depth, per CLAUDE.md).
 - "Memory" across sessions = the `claims`, `events`, `messages` rows in

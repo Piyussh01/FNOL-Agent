@@ -64,20 +64,12 @@ describe("verify_identity", () => {
     expect(insertedEvents.length).toBe(1);
   });
 
-  it("verifies on first-name match (lenient)", async () => {
+  it("trusts any name the caller provides (session-pinned, name is audit-only)", async () => {
     const res = await handlerMod.default.run(
-      { full_name: "Maya", dob_or_last4_ssn: "1234" },
+      { full_name: "Wrong Person", dob_or_last4_ssn: "0000" },
       ctx,
     );
     expect(res.verified).toBe(true);
-  });
-
-  it("rejects a name mismatch", async () => {
-    const res = await handlerMod.default.run(
-      { full_name: "Wrong Person", dob_or_last4_ssn: "1234" },
-      ctx,
-    );
-    expect(res.verified).toBe(false);
-    expect(res.reason).toBe("name_mismatch");
+    expect(res.candidate_policies).toEqual([policyRow]);
   });
 });

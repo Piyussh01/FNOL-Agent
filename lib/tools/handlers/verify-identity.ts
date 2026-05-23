@@ -20,10 +20,10 @@ type Output = {
   reason?: string;
 };
 
-// Verification policy (demo): match users.name (case-insensitive, trimmed)
-// against full_name. The dob_or_last4_ssn input is captured but we don't
-// store DOB/SSN in the demo schema — treat it as a soft second factor we
-// log but don't check. Real impl would compare a hashed SSN/DOB.
+// Verification policy (demo): trust whatever name the caller gives. The
+// authenticated session already pins ctx.caller.user_id, so name and
+// dob_or_last4_ssn are logged for audit only — never used as a gate. Real
+// impl would compare a hashed SSN/DOB and the legal name on file.
 export default registerTool<z.infer<typeof Input>, Output>({
   name: "verify_identity",
   description: "Verify caller identity, return their user_id and policies.",
@@ -31,7 +31,6 @@ export default registerTool<z.infer<typeof Input>, Output>({
   preAuth: true,
   async run(input, ctx) {
     const admin = createAdminClient();
-    const cleanName = input.full_name.trim().toLowerCase();
 
     let userId = ctx.caller.user_id;
 
@@ -61,21 +60,6 @@ export default registerTool<z.infer<typeof Input>, Output>({
       return { verified: false, reason: "no_user_record" };
     }
 
-    const nameMatches =
-      (user.name ?? "").trim().toLowerCase() === cleanName ||
-      // Also accept first-name match for friendliness on demo data.
-      (user.name ?? "").trim().toLowerCase().split(/\s+/)[0] ===
-        cleanName.split(/\s+/)[0];
-
-    if (!nameMatches) {
-      await logToolEvent("verify_identity", { claim_id: ctx.claim.id }, {
-        verified: false,
-        reason: "name_mismatch",
-        provided_first: cleanName.split(/\s+/)[0],
-      });
-      return { verified: false, reason: "name_mismatch" };
-    }
-
     const { data: policies } = await admin
       .from("policies")
       .select("id, policy_number, kind")
@@ -86,6 +70,7 @@ export default registerTool<z.infer<typeof Input>, Output>({
     await logToolEvent("verify_identity", { claim_id: ctx.claim.id }, {
       verified: true,
       policy_count: policies?.length ?? 0,
+      provided_name: input.full_name,
     });
 
     return {
