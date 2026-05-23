@@ -17,7 +17,7 @@ Tracking module-by-module completion. Updated after each commit.
 - [x] **M10** — Safety: escalation, emergency, distress
 - [x] **M11** — Chat fallback with same tool registry
 - [x] **M12** — Tavus Memory for returning users
-- [ ] **M13** — Spanish locale full parity
+- [x] **M13** — Spanish locale full parity
 - [ ] **M14** — PWA + mobile polish
 - [ ] **M15** — Admin live ops dashboard
 - [ ] **M16** — Observability (PostHog/Helicone) + rate limiting
