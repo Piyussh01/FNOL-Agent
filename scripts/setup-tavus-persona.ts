@@ -68,7 +68,7 @@ async function createOne(locale: Locale) {
       },
       perception: {
         perception_model: "raven-0",
-        ambient_awareness_queries: [
+        visual_awareness_queries: [
           "Does the user look distressed, panicked, or scared?",
           "Is there visible injury or damage in frame?",
           "Is the user in an unsafe location?",

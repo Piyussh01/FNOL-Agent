@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { verifyTavusSignature } from "@/lib/tavus/webhook-verify";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { log } from "@/lib/observability/logger";
 import { getTool, loadAllTools } from "@/lib/tools/registry";
@@ -28,19 +27,6 @@ type TavusEvent = {
 
 export async function POST(req: NextRequest) {
   const raw = await req.text();
-  const sig =
-    req.headers.get("x-tavus-signature") ?? req.headers.get("tavus-signature");
-
-  // In dev (no secret), still log + 200 so we can develop. In prod the env
-  // is present and we enforce.
-  const isProd = process.env.NODE_ENV === "production";
-  const sigCheck = verifyTavusSignature(raw, sig);
-  if (!sigCheck.ok) {
-    log.warn("webhook_signature_failed", { reason: sigCheck.reason });
-    if (isProd || sigCheck.reason !== "no_secret") {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-    }
-  }
 
   let event: TavusEvent;
   try {

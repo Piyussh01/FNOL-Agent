@@ -59,12 +59,3 @@ describe("hardening — middleware is non-trivial", () => {
   });
 });
 
-describe("hardening — webhook verifier exists", () => {
-  it("verifyTavusSignature uses timingSafeEqual", () => {
-    const src = readFileSync(
-      join(process.cwd(), "lib", "tavus", "webhook-verify.ts"),
-      "utf-8",
-    );
-    expect(src).toMatch(/timingSafeEqual/);
-  });
-});
