@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Shield } from "lucide-react";
+import AlchemyLogo from "@/components/AlchemyLogo";
 import ClaimVideoSession from "@/components/claim/ClaimVideoSession";
 import ModalitySwitcher from "@/components/claim/ModalitySwitcher";
 import { getCurrentUser } from "@/lib/auth/magic-link";
@@ -34,10 +34,10 @@ export default async function VideoClaimPage({
   const conversationUrl = cookieStore.get("tavus_conversation_url")?.value ?? null;
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-6">
-      <Link href="/" className="mb-4 inline-flex items-center gap-2 text-acme-700">
-        <Shield className="h-5 w-5 text-acme-600" aria-hidden />
-        <span className="font-bold">Alchemy Insurance</span>
+    <main className="min-h-screen bg-white">
+      <div className="mx-auto max-w-4xl px-4 py-6">
+      <Link href="/" className="mb-4 inline-flex items-center gap-2 text-acme-900">
+        <AlchemyLogo className="h-9 w-auto sm:h-10" />
       </Link>
 
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
@@ -64,6 +64,7 @@ export default async function VideoClaimPage({
         Sam may slow down or pause if you sound shaken. You can always say
         &quot;I need a human&quot; — Sam will route you to a supervisor.
       </p>
+      </div>
     </main>
   );
 }
