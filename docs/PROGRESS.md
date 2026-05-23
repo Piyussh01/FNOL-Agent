@@ -18,7 +18,7 @@ Tracking module-by-module completion. Updated after each commit.
 - [x] **M11** — Chat fallback with same tool registry
 - [x] **M12** — Tavus Memory for returning users
 - [x] **M13** — Spanish locale full parity
-- [ ] **M14** — PWA + mobile polish
+- [x] **M14** — PWA + mobile polish
 - [ ] **M15** — Admin live ops dashboard
 - [ ] **M16** — Observability (PostHog/Helicone) + rate limiting
 - [ ] **M17** — Hardening + launch checklist
