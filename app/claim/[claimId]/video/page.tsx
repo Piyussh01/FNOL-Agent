@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Shield } from "lucide-react";
 import ClaimVideoSession from "@/components/claim/ClaimVideoSession";
+import ModalitySwitcher from "@/components/claim/ModalitySwitcher";
 import { getCurrentUser } from "@/lib/auth/magic-link";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -41,9 +42,12 @@ export default async function VideoClaimPage({
 
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-2xl font-bold">Talking to Sam</h1>
-        <p className="text-sm text-acme-700">
-          Claim {claim.claim_number} · {claim.kind}
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="text-sm text-acme-700">
+            Claim {claim.claim_number} · {claim.kind}
+          </p>
+          <ModalitySwitcher claimId={claim.id} current="video" />
+        </div>
       </div>
 
       {searchParams.error && (

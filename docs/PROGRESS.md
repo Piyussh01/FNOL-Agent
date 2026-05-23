@@ -15,7 +15,7 @@ Tracking module-by-module completion. Updated after each commit.
 - [x] **M8** — Partner adapters (mock) + booking tools
 - [x] **M9** — Estimate, submit, summary tools
 - [x] **M10** — Safety: escalation, emergency, distress
-- [ ] **M11** — Chat fallback with same tool registry
+- [x] **M11** — Chat fallback with same tool registry
 - [ ] **M12** — Tavus Memory for returning users
 - [ ] **M13** — Spanish locale full parity
 - [ ] **M14** — PWA + mobile polish
