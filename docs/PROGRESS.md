@@ -21,7 +21,7 @@ Tracking module-by-module completion. Updated after each commit.
 - [x] **M14** — PWA + mobile polish
 - [x] **M15** — Admin live ops dashboard
 - [x] **M16** — Observability (PostHog/Helicone) + rate limiting
-- [ ] **M17** — Hardening + launch checklist
+- [x] **M17** — Hardening + launch checklist
 
 ## Credentials state
 
