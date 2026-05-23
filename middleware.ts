@@ -1,13 +1,44 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { check } from "@/lib/observability/ratelimit";
 
-// Stub. Rate limiting (Upstash) is wired in M16.
-export function middleware(_req: NextRequest) {
+const RATE_KEY_BY_PREFIX: Array<[string, "conv" | "tools" | "chat"]> = [
+  ["/api/conversations/", "conv"],
+  ["/api/tools/", "tools"],
+  ["/api/chat/", "chat"],
+];
+
+function ipFrom(req: NextRequest): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+export async function middleware(req: NextRequest) {
+  const path = req.nextUrl.pathname;
+  for (const [prefix, kind] of RATE_KEY_BY_PREFIX) {
+    if (path.startsWith(prefix)) {
+      const ip = ipFrom(req);
+      const { allowed, remaining } = await check(kind, ip);
+      if (!allowed) {
+        return new NextResponse(
+          JSON.stringify({ error: "rate_limited" }),
+          {
+            status: 429,
+            headers: {
+              "content-type": "application/json",
+              "x-ratelimit-remaining": String(remaining ?? 0),
+            },
+          },
+        );
+      }
+      break;
+    }
+  }
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    // Protect everything except static assets + favicon. Refined in M16.
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json|icons/.*).*)",
-  ],
+  matcher: ["/api/conversations/:path*", "/api/tools/:path*", "/api/chat/:path*"],
 };

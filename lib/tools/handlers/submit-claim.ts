@@ -2,6 +2,7 @@ import { z } from "zod";
 import { registerTool } from "../registry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logToolEvent } from "./_events";
+import { capture } from "@/lib/observability/posthog";
 
 const Input = z.object({
   claim_id: z.string().uuid(),
@@ -41,6 +42,10 @@ export default registerTool<z.infer<typeof Input>, Output>({
     if (error || !data) throw new Error("submit_failed");
 
     await logToolEvent("submit_claim", { claim_id: input.claim_id }, {
+      claim_number: data.claim_number,
+    });
+    await capture("claim_submitted", ctx.caller.user_id, {
+      claim_id: input.claim_id,
       claim_number: data.claim_number,
     });
 

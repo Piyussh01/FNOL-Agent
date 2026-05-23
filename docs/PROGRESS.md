@@ -20,7 +20,7 @@ Tracking module-by-module completion. Updated after each commit.
 - [x] **M13** — Spanish locale full parity
 - [x] **M14** — PWA + mobile polish
 - [x] **M15** — Admin live ops dashboard
-- [ ] **M16** — Observability (PostHog/Helicone) + rate limiting
+- [x] **M16** — Observability (PostHog/Helicone) + rate limiting
 - [ ] **M17** — Hardening + launch checklist
 
 ## Credentials state

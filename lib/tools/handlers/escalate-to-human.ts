@@ -2,6 +2,7 @@ import { z } from "zod";
 import { registerTool } from "../registry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logToolEvent } from "./_events";
+import { capture } from "@/lib/observability/posthog";
 
 const Input = z.object({
   claim_id: z.string().uuid(),
@@ -57,6 +58,11 @@ export default registerTool<z.infer<typeof Input>, Output>({
 
     await logToolEvent("escalate_to_human", { claim_id: input.claim_id }, {
       urgency: input.urgency,
+    });
+    await capture("escalated", ctx.caller.user_id, {
+      claim_id: input.claim_id,
+      urgency: input.urgency,
+      reason: input.reason,
     });
 
     return {
