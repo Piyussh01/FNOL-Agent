@@ -10,7 +10,7 @@ Tracking module-by-module completion. Updated after each commit.
 - [x] **M3** — Bare conversational loop (no tools)
 - [x] **M4** — Read-side tools (verify_identity, get_policy_details, validate_coverage)
 - [x] **M5** — Write-side tools + state machine
-- [ ] **M6** — Photo capture + upload (Twilio SMS)
+- [x] **M6** — Photo capture + upload (Twilio SMS)
 - [ ] **M7** — Claude Vision pipeline
 - [ ] **M8** — Partner adapters (mock) + booking tools
 - [ ] **M9** — Estimate, submit, summary tools
