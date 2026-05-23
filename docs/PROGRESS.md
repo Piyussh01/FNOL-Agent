@@ -8,7 +8,7 @@ Tracking module-by-module completion. Updated after each commit.
 - [x] **M1** — DB schema, RLS, magic-link auth, seed
 - [x] **M2** — Tavus persona EN+ES, KB, setup script
 - [x] **M3** — Bare conversational loop (no tools)
-- [ ] **M4** — Read-side tools (verify_identity, get_policy_details, validate_coverage)
+- [x] **M4** — Read-side tools (verify_identity, get_policy_details, validate_coverage)
 - [ ] **M5** — Write-side tools + state machine
 - [ ] **M6** — Photo capture + upload (Twilio SMS)
 - [ ] **M7** — Claude Vision pipeline

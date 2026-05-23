@@ -32,6 +32,6 @@ See [`docs/PROGRESS.md`](docs/PROGRESS.md). Modules are built in strict order
 ## Test
 
 ```bash
-bun test          # vitest unit + contract
+bun run test      # vitest unit + contract (use this, not `bun test`)
 bun run test:e2e  # playwright
 ```

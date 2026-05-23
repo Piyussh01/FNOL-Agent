@@ -2,6 +2,17 @@ import { NextResponse, type NextRequest } from "next/server";
 import { verifyTavusSignature } from "@/lib/tavus/webhook-verify";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { log } from "@/lib/observability/logger";
+import { getTool, loadAllTools } from "@/lib/tools/registry";
+import { verifyToolJwt } from "@/lib/auth/tool-jwt";
+import { logToolError } from "@/lib/tools/handlers/_events";
+
+let toolsLoaded = false;
+async function ensureToolsLoaded() {
+  if (!toolsLoaded) {
+    await loadAllTools();
+    toolsLoaded = true;
+  }
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -93,9 +104,9 @@ export async function POST(req: NextRequest) {
     }
     case "conversation.perception_tool_call":
     case "conversation.tool_call": {
-      // Dispatched to /api/tools/[name] in M4. For now we record only.
-      log.info("tool_call_received_m3_stub", { eventType });
-      break;
+      await ensureToolsLoaded();
+      const result = await dispatchToolCall(event, sessionRow);
+      return NextResponse.json(result);
     }
     default:
       // Other event types (utterance, perception, replica_joined, etc.)
@@ -104,4 +115,95 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+// Tavus tool_call payload shape (best-effort across versions):
+//   { event_type: "conversation.tool_call",
+//     conversation_id: "...",
+//     properties: { tool_call_id, name, arguments: object|string,
+//                   conversational_context?: string },
+//     data?: similar }
+async function dispatchToolCall(
+  event: TavusEvent,
+  sessionRow: { id: string; claim_id: string | null } | null,
+): Promise<unknown> {
+  const props = (event.properties ?? event.data ?? {}) as Record<string, unknown>;
+  const name = (props.name ?? props.tool_name) as string | undefined;
+  const argsRaw = (props.arguments ?? props.args) as
+    | Record<string, unknown>
+    | string
+    | undefined;
+  const toolCallId = (props.tool_call_id ?? props.id) as string | undefined;
+
+  if (!name) {
+    return { error: "missing_tool_name" };
+  }
+  const tool = getTool(name);
+  if (!tool) {
+    return { error: `unknown_tool:${name}` };
+  }
+
+  const args =
+    typeof argsRaw === "string" ? safeJson(argsRaw) : (argsRaw ?? {});
+
+  // Tavus carries our JWT in the conversational_context string we set at
+  // conversation create.
+  const ctxStr =
+    (props.conversational_context as string | undefined) ??
+    (event.data?.conversational_context as string | undefined) ??
+    null;
+  const ctxObj = ctxStr ? safeJson(ctxStr) : {};
+  const token =
+    (args as Record<string, unknown>).tool_jwt ??
+    (ctxObj as Record<string, unknown>).tool_jwt;
+  if (typeof token !== "string") {
+    return { tool_call_id: toolCallId, error: "missing_tool_jwt" };
+  }
+
+  let claims;
+  try {
+    claims = await verifyToolJwt(token);
+  } catch (err) {
+    return { tool_call_id: toolCallId, error: `bad_token:${(err as Error).message}` };
+  }
+
+  const admin = createAdminClient();
+  const { data: claim } = await admin
+    .from("claims")
+    .select("id, user_id, kind, stage")
+    .eq("id", claims.claim_id)
+    .maybeSingle();
+
+  if (!claim || claim.user_id !== claims.user_id) {
+    return { tool_call_id: toolCallId, error: "unauthorized" };
+  }
+
+  const parsed = tool.inputSchema.safeParse({ ...args, tool_jwt: undefined });
+  if (!parsed.success) {
+    return {
+      tool_call_id: toolCallId,
+      error: "invalid_input",
+      issues: parsed.error.issues,
+    };
+  }
+
+  try {
+    const result = await tool.run(parsed.data, { caller: claims, claim });
+    return { tool_call_id: toolCallId, result };
+  } catch (err) {
+    await logToolError(tool.name, { claim_id: claim.id, session_id: sessionRow?.id }, err);
+    return {
+      tool_call_id: toolCallId,
+      error: (err as Error).message,
+    };
+  }
+}
+
+function safeJson(s: string): Record<string, unknown> {
+  try {
+    const v = JSON.parse(s);
+    return typeof v === "object" && v !== null ? (v as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
 }
