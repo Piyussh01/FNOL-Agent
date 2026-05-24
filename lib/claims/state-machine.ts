@@ -59,9 +59,9 @@ const STAGE_ENTRY_REQUIREMENTS: Record<Stage, Objective[]> = {
   intake: ["policy_verified"],
   coverage_check: ["policy_verified", "incident_when"],
   photos: ["policy_verified", "incident_when"],
-  assessing: ["policy_verified", "photos_uploaded"],
+  assessing: ["policy_verified"],
   booking: ["policy_verified"],
-  reviewing: ["policy_verified", "photos_uploaded"],
+  reviewing: ["policy_verified"],
   submitted: ["policy_verified", "next_steps_booked"],
   escalated: [],
   closed: [],
@@ -71,21 +71,18 @@ const KIND_REQUIRED_OBJECTIVES: Record<Kind, Objective[]> = {
   auto: [
     "policy_verified",
     "incident_when",
-    "photos_uploaded",
     "next_steps_booked",
   ],
   home: [
     "policy_verified",
     "incident_when",
     "peril_identified",
-    "photos_uploaded",
     "next_steps_booked",
   ],
   renters: [
     "policy_verified",
     "incident_when",
     "peril_identified",
-    "photos_uploaded",
     "next_steps_booked",
   ],
 };

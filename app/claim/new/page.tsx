@@ -1,7 +1,8 @@
 import { getCurrentUser } from "@/lib/auth/magic-link";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Shield, Car, Home, Package } from "lucide-react";
+import { Car, Home, Package } from "lucide-react";
+import AlchemyLogo from "@/components/AlchemyLogo";
 
 export default async function NewClaimPage() {
   const user = await getCurrentUser();
@@ -10,10 +11,10 @@ export default async function NewClaimPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-5 py-10 sm:px-6 sm:py-12">
-      <Link href="/" className="mb-8 inline-flex items-center gap-2 text-acme-700">
-        <Shield className="h-5 w-5 text-acme-600" aria-hidden />
-        <span className="font-bold">Alchemy Insurance</span>
+    <main className="min-h-screen bg-white">
+      <div className="mx-auto max-w-2xl px-5 py-10 sm:px-6 sm:py-12">
+      <Link href="/" className="mb-8 inline-flex items-center">
+        <AlchemyLogo className="h-9 w-auto text-acme-900 sm:h-10" />
       </Link>
 
       <h1 className="text-2xl font-bold sm:text-3xl">Let&apos;s file your claim</h1>
@@ -33,6 +34,7 @@ export default async function NewClaimPage() {
       <p className="mt-10 text-xs text-acme-700">
         In an emergency, call 911. Sam is not a substitute for emergency services.
       </p>
+      </div>
     </main>
   );
 }

@@ -2,21 +2,18 @@
   "auto": [
     "policy_verified",
     "incident_when",
-    "photos_uploaded",
     "next_steps_booked"
   ],
   "home": [
     "policy_verified",
     "incident_when",
     "peril_identified",
-    "photos_uploaded",
     "next_steps_booked"
   ],
   "renters": [
     "policy_verified",
     "incident_when",
     "peril_identified",
-    "photos_uploaded",
     "next_steps_booked"
   ]
 }
