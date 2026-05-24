@@ -1,25 +1,13 @@
 # Demo data & how to test end-to-end
 
-This is the cheat sheet for driving the FNOL demo without setting up email
-delivery. All three users are seeded in `supabase/migrations/0004_seed.sql`
-and can be signed in with one click from `/login`.
+This is the cheat sheet for driving the FNOL demo. **Any email works** —
+sign in with the magic link (or use the three seeded accounts below if you
+own their inboxes). Every brand-new account is auto-provisioned with
+**all three** policy kinds (auto + home + renters) by migration
+`0008_default_all_policies_for_new_users.sql`, so you can exercise any
+flow on `/claim/new` regardless of which email you signed in with.
 
-## One-click sign-in
-
-The `/login` page exposes a **Demo accounts** section. Each row hits
-`GET /api/auth/dev-login?email=…` which calls
-`supabase.auth.admin.generateLink({ type: 'magiclink' })` server-side and
-redirects through `/callback` so cookies are set exactly like the real magic
-link flow. The endpoint is gated by an allowlist (the three seed emails) — it
-will refuse any other address.
-
-If you want to skip the UI, just hit the URL directly:
-
-```
-http://localhost:3000/api/auth/dev-login?email=maya@example.com
-```
-
-## Hardcoded policyholders
+## Hardcoded policyholders (seeded fixtures, optional)
 
 ### 1. Maya Rodriguez — auto only
 
@@ -76,40 +64,46 @@ photos → tow → rental → repair shop pick (Mission Auto Body et al.) → ad
 - Two are out-of-network (Alameda Auto Body, Pacifica Auto Body) so you can
   test the in-network filter.
 
-## Default policy for brand-new sign-ups
+## Default policies for brand-new sign-ups
 
-Any user who signs in with an email that's **not** in the 0004 seed gets a
-default auto policy automatically attached by the `handle_new_auth_user`
-trigger (migration `0007_default_policy_for_new_users.sql`). This means the
-demo end-to-end flow works for any email, not just the three named seeds.
+Every user who signs in gets **three** policies auto-attached by the
+`handle_new_auth_user` trigger (migration
+`0008_default_all_policies_for_new_users.sql`, supersedes 0007). The
+policy numbers are derived from the user's uuid so they're stable per
+account:
 
-The default policy that gets written:
+| Kind    | Policy number suffix       | Asset attached                            |
+| ------- | -------------------------- | ----------------------------------------- |
+| auto    | `ACME-AUTO-<8 uuid chars>` | 2022 Honda Civic                          |
+| home    | `ACME-HOME-<8 uuid chars>` | 123 Demo Lane, San Francisco, CA 94110    |
+| renters | `ACME-RENT-<8 uuid chars>` | 500 Demo Ave Apt 4B, San Francisco, CA    |
 
-| Field | Value |
-| --- | --- |
-| Policy number | `ACME-AUTO-<first 8 chars of user uuid, uppercased>` |
-| Kind | `auto` |
-| State | CA |
-| Active window | today → today + 1 year |
-| Collision deductible | $500 |
-| Comprehensive deductible | $250 |
-| Liability — bodily / property | $100k / $50k |
-| Uninsured motorist | $100k |
-| Perils covered | collision, comprehensive, vandalism, theft, weather, fire |
-| Rental reimbursement | $40/day, 30 day cap |
-| Default vehicle | 2022 Honda Civic (VIN + plate derived from the same uuid suffix) |
+Coverage shape per kind:
 
-`users.name` is derived from the local part of the email (e.g. `bob@example.com`
-→ `bob`), but **`verify_identity` no longer checks the name** — it trusts
-whatever the caller says because the session is already pinned to a specific
-`user_id` by the JWT. The name and DOB/SSN values are written to the
-`events` audit log only.
+- **Auto** — $500 collision / $250 comprehensive deductible. Liability
+  $100k bodily / $50k property. Rental reimbursement $40/day, 30-day cap.
+  Perils: collision, comprehensive, vandalism, theft, weather, fire.
+- **Home** — $1k all-peril / $2.5k wind-hail deductible. Dwelling $500k,
+  personal property $250k, liability $300k. Perils: fire, theft,
+  vandalism, wind, hail, lightning, sudden water (flood and earthquake
+  excluded).
+- **Renters** — $250 all-peril deductible. Personal property $50k,
+  liability $100k, loss of use $10k. Perils: theft, fire, vandalism,
+  sudden water.
 
-If you want a *different* default (e.g. add a home policy, change deductibles),
-edit the `insert into public.policies` block in
-`supabase/migrations/0007_default_policy_for_new_users.sql` and write a
-follow-up forward-only migration to update the trigger — never edit 0007 in
-place once it has been applied to a shared environment.
+`users.name` is derived from the local part of the email (e.g.
+`bob@example.com` → `bob`). **`verify_identity` does not check the name**
+— it trusts whatever the caller says because the session is already
+pinned to a specific `user_id` by the JWT. Name and DOB/SSN values are
+written to the `events` audit log only.
+
+The 0008 migration also **backfills** missing policy kinds for any user
+who was created under the old 0007 (auto-only) trigger, so existing
+accounts become demo-ready without a re-signup.
+
+To change the default coverage shape, edit migration `0008` only if it
+has not yet been applied to a shared environment; otherwise write a new
+forward-only migration that replaces the trigger.
 
 ## Does Sam remember anything across conversations?
 
@@ -122,11 +116,11 @@ place once it has been applied to a shared environment.
    stage=evidence). Offer to resume…"* That hint lives for one conversation
    and is rebuilt from DB state every time, not from prior transcripts.
 
-2. **Identity verification is policy-keyed.** `verify_identity`
-   (`lib/tools/handlers/verify-identity.ts`) matches the caller's name
-   against `users.name` and optionally a policy number against
-   `policies.policy_number`. Because every new user now gets a default
-   policy via the trigger above, this passes for any signed-in account.
+2. **Identity verification is session-keyed.** `verify_identity`
+   (`lib/tools/handlers/verify-identity.ts`) trusts the name the caller
+   says — the authenticated session already pins `ctx.caller.user_id`.
+   Because every new user gets all three policy kinds via the trigger
+   above, any kind of claim works for any signed-in account.
 
 3. **Sam still won't *create* a policy at runtime.** The auto-attach is a
    DB trigger, not an agent tool. None of the 18 registered tools
@@ -136,9 +130,8 @@ place once it has been applied to a shared environment.
 
 **Assumptions baked into the demo:**
 - Onboarding (KYC, underwriting, payment) is out of scope. The trigger
-  fabricates a policy purely so the FNOL happy-path is testable end-to-end.
-- The default is **auto** because that's the primary demo scenario; new
-  users trying to file home or renters will fail coverage validation.
+  fabricates the three policies purely so the FNOL happy-path is testable
+  end-to-end for any signed-in email.
 - The authenticated session (JWT → `ctx.caller.user_id`) is the real
   verification gate. `verify_identity` accepts any name and any DOB/SSN
   string in the demo and only logs them for audit. Prod would compare a

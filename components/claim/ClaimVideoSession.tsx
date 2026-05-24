@@ -33,16 +33,17 @@ export default function ClaimVideoSession({
 
   if (!conversationUrl) {
     return (
-      <div className="aspect-video w-full animate-pulse rounded-lg bg-acme-100" />
+      <div className="w-full animate-pulse rounded-lg bg-acme-100 h-[70dvh] sm:h-auto sm:aspect-video" />
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-acme-100 bg-black shadow-lg">
+    <div className="flex flex-col overflow-hidden rounded-xl border border-acme-100 bg-black shadow-lg">
       {claimNumber && (
-        <div className="flex items-center justify-between bg-acme-900 px-4 py-2 text-xs text-white">
-          <span>Claim {claimNumber}</span>
-          <span className="opacity-70">Recording for quality + claims review</span>
+        <div className="flex items-center justify-between gap-3 bg-acme-900 px-4 py-2 text-xs text-white">
+          <span className="truncate">Claim {claimNumber}</span>
+          <span className="opacity-70 hidden sm:inline">Recording for quality + claims review</span>
+          <span className="opacity-70 sm:hidden">Recording</span>
         </div>
       )}
       <iframe
@@ -50,7 +51,7 @@ export default function ClaimVideoSession({
         src={conversationUrl}
         title="Sam — Alchemy Insurance"
         allow="camera; microphone; autoplay; fullscreen; display-capture"
-        className="block aspect-video w-full"
+        className="block w-full h-[70dvh] sm:h-auto sm:aspect-video"
       />
     </div>
   );
