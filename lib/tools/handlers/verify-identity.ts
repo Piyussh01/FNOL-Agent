@@ -32,19 +32,7 @@ export default registerTool<z.infer<typeof Input>, Output>({
   async run(input, ctx) {
     const admin = createAdminClient();
 
-    let userId = ctx.caller.user_id;
-
-    // If we have a policy_number, lock to that policy's holder.
-    if (input.policy_number) {
-      const { data: policy } = await admin
-        .from("policies")
-        .select("holder_user_id")
-        .eq("policy_number", input.policy_number)
-        .maybeSingle();
-      if (policy?.holder_user_id) {
-        userId = policy.holder_user_id;
-      }
-    }
+    const userId = ctx.caller.user_id;
 
     const { data: user } = await admin
       .from("users")
