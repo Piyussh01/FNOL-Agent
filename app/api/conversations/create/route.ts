@@ -174,6 +174,10 @@ export async function POST(req: NextRequest) {
         const displayName = looksEmailDerived ? null : rawName || null;
         const firstName = displayName?.split(/\s+/)[0] ?? null;
 
+        // NOTE: every value in this payload is internal — the agent must
+        // never read field names or raw identifiers aloud. Voice rules
+        // below are belt-and-suspenders on top of the persona prompt so
+        // they take effect without re-running `bun run tavus:setup`.
         return JSON.stringify({
           claim_id: claimId,
           claim_number: claimNumber,
@@ -188,7 +192,16 @@ export async function POST(req: NextRequest) {
           locale,
           memory_hint: memoryHint,
           fast_path:
-            "Identity is already verified by session. Policy is already attached to the claim. Skip verify_identity, get_policy_details, and start_claim — go straight to acknowledging the incident and asking what happened. If user_first_name is null, do NOT invent a name and do NOT use the email — greet generically ('Hey there — what's going on?').",
+            "Identity is already verified by session. Policy is already attached to the claim. Skip the verify-identity, fetch-policy, and start-claim actions — go straight to acknowledging the incident and asking what happened. If the first name is missing, do NOT invent a name and do NOT use the email — greet generically ('Hey there — what's going on?').",
+          voice_rules: [
+            "You are a human-sounding advocate, not a software process.",
+            "NEVER say 'policy number', 'policy ID', or recite the raw policy identifier. Say 'your policy' or 'the policy we have on file' instead.",
+            "NEVER say 'tool', 'tool call', 'function', 'invoke', 'invocation', 'API', 'endpoint', 'JSON', 'payload', 'context', 'field', 'schema', 'record', 'database', 'system', 'backend', 'lookup', or 'query'.",
+            "NEVER speak any underscore-shaped identifier aloud (e.g. policy_id, claim_id, validate_coverage, record_incident_details).",
+            "NEVER narrate that you are about to do a lookup. No 'let me invoke…', no 'I'll call our system…', no 'I'm pulling the policy record…'. If you need a beat, say 'one moment' or 'let me check that for you' — then do it silently.",
+            "Translate every internal result into plain human language. Never read structured data back.",
+            "Claim numbers (CL-2026-…) ARE safe to say aloud. Policy identifiers are NOT.",
+          ],
         });
       })(),
       callback_url: `${appUrl}/api/tavus/webhook`,
