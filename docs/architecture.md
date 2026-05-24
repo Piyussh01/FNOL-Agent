@@ -1,9 +1,5 @@
 # FNOL — Architecture overview
 
-A high-level map of how the system fits together. For module-by-module
-status, see [`PROGRESS.md`](PROGRESS.md). For ops, see
-[`runbook.md`](runbook.md). For a live demo walkthrough, see
-[`demo-script.md`](demo-script.md).
 
 ---
 
