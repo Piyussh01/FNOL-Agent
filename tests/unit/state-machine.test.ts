@@ -81,9 +81,9 @@ describe("state machine — pure transitions", () => {
 
 describe("objectivesFor + progress", () => {
   it("returns the right objectives per kind", () => {
-    expect(objectivesFor("auto")).toContain("drivable");
-    expect(objectivesFor("home")).toContain("habitable");
-    expect(objectivesFor("renters")).toContain("inventory_collected");
+    expect(objectivesFor("auto")).toContain("incident_when");
+    expect(objectivesFor("home")).toContain("peril_identified");
+    expect(objectivesFor("renters")).toContain("peril_identified");
   });
 
   it("progress is 0 to 1", () => {

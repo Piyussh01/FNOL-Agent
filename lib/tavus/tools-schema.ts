@@ -28,18 +28,19 @@ export const tavusTools: TavusToolSpec[] = [
     function: {
       name: "verify_identity",
       description:
-        "Verify the caller's identity against Alchemy records. Call before any policy lookup.",
+        "OPTIONAL — only call if the runtime context is missing user_name or policy_number. The session itself is the verification gate; do not call this just to confirm the user is who they say. Never ask for DOB or SSN.",
       parameters: {
         type: "object",
         properties: {
           full_name: { type: "string" },
           dob_or_last4_ssn: {
             type: "string",
-            description: "Caller's DOB in YYYY-MM-DD OR last 4 digits of SSN",
+            description:
+              "OPTIONAL — captured for audit only, never used as a gate. Do not ask the user for this in the demo.",
           },
-          policy_number: { type: "string", description: "Optional if known" },
+          policy_number: { type: "string", description: "Optional" },
         },
-        required: ["full_name", "dob_or_last4_ssn"],
+        required: ["full_name"],
         additionalProperties: false,
       },
     },
@@ -48,11 +49,14 @@ export const tavusTools: TavusToolSpec[] = [
     type: "function",
     function: {
       name: "get_policy_details",
-      description: "Fetch policy summary, deductibles, prior claim count.",
+      description:
+        "OPTIONAL — runtime context already includes policy_number and deductibles. Only call if the user explicitly asks for additional coverage details.",
       parameters: {
         type: "object",
-        properties: { policy_id: { type: "string" } },
-        required: ["policy_id"],
+        properties: {
+          policy_id: { type: "string" },
+          kind: { type: "string", enum: ["auto", "home", "renters"] },
+        },
         additionalProperties: false,
       },
     },
@@ -62,7 +66,7 @@ export const tavusTools: TavusToolSpec[] = [
     function: {
       name: "validate_coverage",
       description:
-        "Check whether a specific peril (e.g. collision, theft, water_sudden) is covered on a policy. Always call before confirming coverage verbally.",
+        "Check whether a specific peril (e.g. collision, theft, water_sudden) is covered on a policy. Call AT MOST ONCE per peril per conversation — cache the result and reuse it. Do not re-call when the user re-mentions the same incident.",
       parameters: {
         type: "object",
         properties: {
@@ -79,7 +83,8 @@ export const tavusTools: TavusToolSpec[] = [
     type: "function",
     function: {
       name: "start_claim",
-      description: "Open a new claim row. Returns claim_id and claim_number.",
+      description:
+        "OPTIONAL — runtime context already includes claim_id and claim_number for new claims. Only call if you genuinely need to open a brand-new claim of a different kind than the one already attached.",
       parameters: {
         type: "object",
         properties: {

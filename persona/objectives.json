@@ -2,11 +2,6 @@
   "auto": [
     "policy_verified",
     "incident_when",
-    "incident_where",
-    "at_fault",
-    "injuries_screen",
-    "other_parties",
-    "drivable",
     "photos_uploaded",
     "next_steps_booked"
   ],
@@ -14,9 +9,6 @@
     "policy_verified",
     "incident_when",
     "peril_identified",
-    "property_verified",
-    "habitable",
-    "mitigation_taken",
     "photos_uploaded",
     "next_steps_booked"
   ],
@@ -24,9 +16,6 @@
     "policy_verified",
     "incident_when",
     "peril_identified",
-    "property_verified",
-    "inventory_collected",
-    "police_report_if_theft",
     "photos_uploaded",
     "next_steps_booked"
   ]

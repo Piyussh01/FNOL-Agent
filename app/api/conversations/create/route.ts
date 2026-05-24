@@ -34,27 +34,53 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = createAdminClient();
-  const locale: Locale = user.preferred_lang === "es" ? "es" : "en";
+  const cookieLocale = req.cookies.get("fnol_locale")?.value;
+  const locale: Locale =
+    cookieLocale === "es" || user.preferred_lang === "es" ? "es" : "en";
 
-  // 1. Resume or create claim row.
+  // 1. Pre-resolve the user's policy for the kind they clicked. Trigger 0009
+  //    guarantees every account has an auto/home/renters row, so this
+  //    succeeds for any signed-in email. Pre-attaching skips three
+  //    round-trip tool calls (verify_identity / get_policy_details /
+  //    start_claim) at the top of the conversation.
+  const { data: prePolicy } = await admin
+    .from("policies")
+    .select("id, policy_number, coverage_json")
+    .eq("holder_user_id", user.id)
+    .eq("kind", parsed.kind)
+    .order("active_to", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const policyId = prePolicy?.id ?? null;
+  const policyNumber = prePolicy?.policy_number ?? null;
+  const coverage =
+    (prePolicy?.coverage_json as Record<string, unknown> | null) ?? null;
+  const deductibles = (coverage?.deductibles ?? {}) as Record<string, number>;
+
+  // 2. Resume or create claim row. New claims land directly at `intake` with
+  //    policy already attached — no Verify-stage round trip needed.
   let claimId: string;
+  let claimNumber: string | null = null;
   if (parsed.resume_from_claim_id) {
     const { data, error } = await admin
       .from("claims")
-      .select("id, user_id")
+      .select("id, user_id, claim_number")
       .eq("id", parsed.resume_from_claim_id)
       .maybeSingle();
     if (error || !data || data.user_id !== user.id) {
       return NextResponse.json({ error: "claim_not_found" }, { status: 404 });
     }
     claimId = data.id;
+    claimNumber = data.claim_number;
   } else {
     const { data, error } = await admin
       .from("claims")
       .insert({
         user_id: user.id,
         kind: parsed.kind,
-        stage: "greeting",
+        stage: policyId ? "intake" : "greeting",
+        policy_id: policyId,
       })
       .select("id, claim_number")
       .single();
@@ -63,6 +89,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "claim_create_failed" }, { status: 500 });
     }
     claimId = data.id;
+    claimNumber = data.claim_number;
   }
 
   // 1b. Memory recall: any open claims (excluding the one we just made)?
@@ -134,11 +161,19 @@ export async function POST(req: NextRequest) {
       conversation_name: `claim:${claimId}`,
       conversational_context: JSON.stringify({
         claim_id: claimId,
+        claim_number: claimNumber,
+        claim_kind: parsed.kind,
         user_id: user.id,
         user_name: user.name,
+        user_first_name: (user.name ?? "").split(/\s+/)[0] || null,
+        policy_id: policyId,
+        policy_number: policyNumber,
+        deductibles,
         tool_jwt: token,
         locale,
         memory_hint: memoryHint,
+        fast_path:
+          "Identity is already verified by session. Policy is already attached to the claim. Skip verify_identity, get_policy_details, and start_claim — go straight to acknowledging the incident and asking what happened.",
       }),
       callback_url: `${appUrl}/api/tavus/webhook`,
       properties: {

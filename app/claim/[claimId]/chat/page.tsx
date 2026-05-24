@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Shield } from "lucide-react";
+import { Shield, Camera } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth/magic-link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import ClaimChat from "@/components/claim/ClaimChat";
@@ -47,10 +47,21 @@ export default async function ChatClaimPage({
         </Link>
         <ModalitySwitcher claimId={claim.id} current="chat" />
       </div>
-      <h1 className="mb-1 text-xl font-bold">Chat with Sam</h1>
-      <p className="mb-4 text-sm text-acme-700">
-        Claim {claim.claim_number} · {claim.kind} · {claim.stage}
-      </p>
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+        <div>
+          <h1 className="text-xl font-bold">Chat with Sam</h1>
+          <p className="text-sm text-acme-700">
+            Claim {claim.claim_number} · {claim.kind} · {claim.stage}
+          </p>
+        </div>
+        <Link
+          href={`/claim/${claim.id}/photos`}
+          className="inline-flex items-center gap-2 rounded-lg border border-acme-200 bg-white px-3 py-2 text-sm font-semibold text-acme-900 transition hover:border-acme-600 hover:shadow-sm"
+        >
+          <Camera className="h-4 w-4" aria-hidden />
+          Take photos
+        </Link>
+      </div>
       <ClaimChat claimId={claim.id} initialMessages={initialMessages} />
     </main>
   );

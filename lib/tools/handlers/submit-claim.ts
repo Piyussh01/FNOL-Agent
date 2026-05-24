@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { registerTool } from "../registry";
+import { registerTool, getTool } from "../registry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logToolEvent } from "./_events";
 import { capture } from "@/lib/observability/posthog";
@@ -13,11 +13,12 @@ type Output = {
   submitted: boolean;
   claim_number: string;
   expected_adjuster_contact_by: string;
+  email_sent: boolean;
 };
 
 export default registerTool<z.infer<typeof Input>, Output>({
   name: "submit_claim",
-  description: "Submit the claim after user confirmation.",
+  description: "Submit the claim after user confirmation. Auto-sends the summary email — do not call send_summary separately.",
   inputSchema: Input,
   async run(input, ctx) {
     if (!input.user_confirmed) {
@@ -26,7 +27,6 @@ export default registerTool<z.infer<typeof Input>, Output>({
     const admin = createAdminClient();
     const now = new Date();
     const expected = new Date(now);
-    // 48 business hours ≈ 2-3 calendar days; we cite "within 48 business hours."
     expected.setHours(expected.getHours() + 48);
 
     const { data, error } = await admin
@@ -49,10 +49,24 @@ export default registerTool<z.infer<typeof Input>, Output>({
       claim_number: data.claim_number,
     });
 
+    let emailSent = false;
+    const sendSummary = getTool("send_summary");
+    if (sendSummary) {
+      try {
+        const r = (await sendSummary.run({ claim_id: input.claim_id }, ctx)) as {
+          sent?: boolean;
+        };
+        emailSent = r?.sent === true;
+      } catch {
+        emailSent = false;
+      }
+    }
+
     return {
       submitted: true,
       claim_number: data.claim_number,
       expected_adjuster_contact_by: expected.toISOString(),
+      email_sent: emailSent,
     };
   },
 });
