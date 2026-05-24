@@ -159,22 +159,38 @@ export async function POST(req: NextRequest) {
     const conv = await tavus.createConversation({
       persona_id: personaId,
       conversation_name: `claim:${claimId}`,
-      conversational_context: JSON.stringify({
-        claim_id: claimId,
-        claim_number: claimNumber,
-        claim_kind: parsed.kind,
-        user_id: user.id,
-        user_name: user.name,
-        user_first_name: (user.name ?? "").split(/\s+/)[0] || null,
-        policy_id: policyId,
-        policy_number: policyNumber,
-        deductibles,
-        tool_jwt: token,
-        locale,
-        memory_hint: memoryHint,
-        fast_path:
-          "Identity is already verified by session. Policy is already attached to the claim. Skip verify_identity, get_policy_details, and start_claim — go straight to acknowledging the incident and asking what happened.",
-      }),
+      conversational_context: (() => {
+        // Don't pass an email-local-part as a name. If users.name looks
+        // derived from the email (e.g. "assist" from "assist@bside.org"),
+        // pass null so Sam greets generically instead of calling them by
+        // their email handle.
+        const rawName = (user.name ?? "").trim();
+        const emailLocal = (user.email ?? "").split("@")[0]?.toLowerCase() ?? "";
+        const looksEmailDerived =
+          !!rawName &&
+          (rawName.toLowerCase() === emailLocal ||
+            // also catch "first.last" / "first_last" auto-formats
+            rawName.toLowerCase().replace(/[._]/g, "") === emailLocal.replace(/[._]/g, ""));
+        const displayName = looksEmailDerived ? null : rawName || null;
+        const firstName = displayName?.split(/\s+/)[0] ?? null;
+
+        return JSON.stringify({
+          claim_id: claimId,
+          claim_number: claimNumber,
+          claim_kind: parsed.kind,
+          user_id: user.id,
+          user_name: displayName,
+          user_first_name: firstName,
+          policy_id: policyId,
+          policy_number: policyNumber,
+          deductibles,
+          tool_jwt: token,
+          locale,
+          memory_hint: memoryHint,
+          fast_path:
+            "Identity is already verified by session. Policy is already attached to the claim. Skip verify_identity, get_policy_details, and start_claim — go straight to acknowledging the incident and asking what happened. If user_first_name is null, do NOT invent a name and do NOT use the email — greet generically ('Hey there — what's going on?').",
+        });
+      })(),
       callback_url: `${appUrl}/api/tavus/webhook`,
       properties: {
         max_call_duration: 1800,
