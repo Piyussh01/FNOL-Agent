@@ -66,15 +66,17 @@ export const tavusTools: TavusToolSpec[] = [
     function: {
       name: "validate_coverage",
       description:
-        "Check whether a specific peril (e.g. collision, theft, water_sudden) is covered on a policy. Call AT MOST ONCE per peril per conversation — cache the result and reuse it. Do not re-call when the user re-mentions the same incident.",
+        "Check whether a specific peril (e.g. collision, theft, water_sudden) is covered on the user's active policy. The server resolves the policy automatically from the current claim — you only need to pass the peril. Call AT MOST ONCE per peril per conversation.",
       parameters: {
         type: "object",
         properties: {
-          policy_id: { type: "string" },
-          claim_kind: { type: "string", enum: ["auto", "home", "renters"] },
-          peril: { type: "string" },
+          peril: {
+            type: "string",
+            description:
+              "The peril to check, in snake_case. Auto: collision, comprehensive, vandalism, theft, weather, fire, glass. Home: fire, theft, vandalism, wind, hail, lightning, water_sudden. Renters: theft, fire, vandalism, water_sudden.",
+          },
         },
-        required: ["policy_id", "claim_kind", "peril"],
+        required: ["peril"],
         additionalProperties: false,
       },
     },

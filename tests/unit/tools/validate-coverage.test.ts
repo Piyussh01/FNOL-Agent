@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+const POLICY_ID = "00000000-0000-0000-0000-000000000001";
+
 const policy = {
   holder_user_id: "user-1",
   kind: "auto",
@@ -10,16 +12,46 @@ const policy = {
   },
 };
 
+// Tabular mock so we can return different rows depending on which table
+// the handler queries (claims vs policies). The handler resolves policy_id
+// from the authenticated claim, then fetches the full policy.
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          maybeSingle: async () => ({ data: policy }),
+    from(table: string) {
+      if (table === "claims") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({ data: { policy_id: POLICY_ID } }),
+            }),
+          }),
+          update: () => ({
+            eq: () => ({ is: async () => ({ data: null }) }),
+          }),
+        };
+      }
+      if (table === "policies") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({ data: policy }),
+              order: () => ({
+                limit: () => ({
+                  maybeSingle: async () => ({ data: { id: POLICY_ID } }),
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+      // events / messages / anything else — no-op.
+      return {
+        select: () => ({
+          eq: () => ({ maybeSingle: async () => ({ data: null }) }),
         }),
-      }),
-      insert: async () => ({ data: null }),
-    }),
+        insert: async () => ({ data: null }),
+      };
+    },
   }),
 }));
 
@@ -37,21 +69,20 @@ const ctx = {
 
 describe("validate_coverage", () => {
   it("confirms a covered peril with the right deductible", async () => {
-    const res = await mod.default.run(
-      { policy_id: "00000000-0000-0000-0000-000000000001", claim_kind: "auto", peril: "collision" },
-      ctx,
-    );
+    const res = await mod.default.run({ peril: "collision" }, ctx);
     expect(res.covered).toBe(true);
     expect(res.deductible_usd).toBe(500);
     expect(res.notes).toMatch(/Subject to adjuster review/);
   });
 
   it("flags an uncovered peril", async () => {
-    const res = await mod.default.run(
-      { policy_id: "00000000-0000-0000-0000-000000000001", claim_kind: "auto", peril: "fire" },
-      ctx,
-    );
+    const res = await mod.default.run({ peril: "fire" }, ctx);
     expect(res.covered).toBe(false);
     expect(res.notes).toMatch(/not listed as a covered peril/);
+  });
+
+  it("resolves the policy from the claim — caller doesn't need to pass policy_id or claim_kind", async () => {
+    const res = await mod.default.run({ peril: "theft" }, ctx);
+    expect(res.covered).toBe(true);
   });
 });

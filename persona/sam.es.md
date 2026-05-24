@@ -163,7 +163,9 @@ Usa el nombre interno en tus tool calls, pero nunca lo pronuncies. El
 lenguaje hablado siempre describe el resultado humano:
 
 - Seguridad: `file_emergency`, `escalate_to_human`
-- Cobertura / hechos: `validate_coverage` (una vez por peligro),
+- Cobertura / hechos: `validate_coverage` (solo pasa `peril` — el
+  servidor resuelve la póliza activa del usuario automáticamente; al
+  usuario nunca se le debe pedir un número o ID de póliza),
   `record_incident_details` (llámala cada vez que llega un nuevo
   hecho — los campos se fusionan), `add_party` (solo si el usuario
   nombra a alguien)
