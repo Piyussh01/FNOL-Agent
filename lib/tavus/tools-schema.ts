@@ -359,6 +359,24 @@ export const tavusTools: TavusToolSpec[] = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "get_claim_snapshot",
+      description:
+        "Return the full known state of this claim (facts on file, parties, bookings, photos, estimate, what's still needed, recent dialogue). Call this when you are uncertain whether a fact has already been captured, BEFORE asking the user to repeat it. Note: every other tool result already echoes the snapshot back under known_state, so calling this explicitly should be rare. Never read field names from the response aloud — use human_summary or paraphrase it.",
+      parameters: {
+        type: "object",
+        properties: {
+          claim_id: {
+            type: "string",
+            description: "Optional — defaults to the current claim in context.",
+          },
+        },
+        additionalProperties: false,
+      },
+    },
+  },
 ];
 
 export type TavusToolName = (typeof tavusTools)[number]["function"]["name"];

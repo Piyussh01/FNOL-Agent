@@ -22,7 +22,9 @@ describe("tool registry parity with Tavus schema", () => {
     }
   });
 
-  it("registers exactly 18 tools", () => {
-    expect(listTools()).toHaveLength(18);
+  it("registers the full tool set", () => {
+    // 18 original action tools + 1 read-only working-memory tool
+    // (get_claim_snapshot) for agentic recall.
+    expect(listTools()).toHaveLength(19);
   });
 });

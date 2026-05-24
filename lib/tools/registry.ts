@@ -60,5 +60,6 @@ export async function loadAllTools() {
     import("./handlers/check-claim-status"),
     import("./handlers/escalate-to-human"),
     import("./handlers/file-emergency"),
+    import("./handlers/get-claim-snapshot"),
   ]);
 }

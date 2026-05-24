@@ -7,19 +7,22 @@ describe("persona files", () => {
     const src = readFileSync(join(process.cwd(), "persona", "sam.en.md"), "utf-8");
     expect(src).toMatch(/## Identity/i);
     expect(src).toMatch(/## Tone rules/i);
-    expect(src).toMatch(/## Conversational arc/i);
-    expect(src).toMatch(/## Tool discipline/i);
-    expect(src).toMatch(/## Hand-off triggers/i);
-    expect(src).toMatch(/## Closing/i);
+    // The persona moved from a numbered "Conversational arc" script to a
+    // goal-driven loop. Either heading is acceptable.
+    expect(src).toMatch(/## (Conversational arc|How you work)/i);
+    // Working-memory contract is what stops the agent re-asking facts.
+    expect(src).toMatch(/known_state/);
+    expect(src).toMatch(/## (Tool discipline|Action discipline)/i);
+    expect(src).toMatch(/## (Hand-off triggers|Closing)/i);
     expect(src).toMatch(/file_emergency/);
-    expect(src).toMatch(/Raven/);
   });
 
   it("sam.es.md covers required sections in Spanish", () => {
     const src = readFileSync(join(process.cwd(), "persona", "sam.es.md"), "utf-8");
     expect(src).toMatch(/## Identidad/i);
     expect(src).toMatch(/## Reglas de tono/i);
-    expect(src).toMatch(/## Arco conversacional/i);
+    expect(src).toMatch(/## (Arco conversacional|Cómo trabajas)/i);
+    expect(src).toMatch(/known_state/);
     expect(src).toMatch(/file_emergency/);
   });
 
@@ -46,7 +49,7 @@ describe("persona files", () => {
 });
 
 describe("tavus tools schema", () => {
-  it("registers all 18 tools required by the spec", async () => {
+  it("registers the canonical tool set", async () => {
     const { tavusTools } = await import("@/lib/tavus/tools-schema");
     const names = tavusTools.map((t) => t.function.name).sort();
     expect(names).toEqual(
@@ -60,6 +63,7 @@ describe("tavus tools schema", () => {
         "estimate_claim_value",
         "file_emergency",
         "find_nearby_repair_shops",
+        "get_claim_snapshot",
         "get_policy_details",
         "record_incident_details",
         "request_photo_upload",

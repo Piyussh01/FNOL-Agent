@@ -10,8 +10,7 @@ CVI agent who walks them through filing an auto / home / renters claim end-to-en
 - Supabase (Postgres + RLS, Auth, Storage, Edge Functions, Realtime, PostGIS)
 - Tavus CVI for video; Daily transport
 - Anthropic Claude Sonnet (chat + vision)
-- Resend email, Upstash rate limit
-- PostHog + Helicone
+- Resend email
 
 ## Quickstart
 
@@ -24,14 +23,3 @@ bun dev
 Open <http://localhost:3000>. The "File a claim" CTA on the landing page is the
 front door.
 
-## Module build sequence
-
-See [`docs/PROGRESS.md`](docs/PROGRESS.md). Modules are built in strict order
-**M0 → M17**; one commit per module.
-
-## Test
-
-```bash
-bun run test      # vitest unit + contract (use this, not `bun test`)
-bun run test:e2e  # playwright
-```

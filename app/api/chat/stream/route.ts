@@ -9,6 +9,7 @@ import { getTool, loadAllTools } from "@/lib/tools/registry";
 import { loadPersonaPrompt } from "@/lib/tavus/persona";
 import { logToolError } from "@/lib/tools/handlers/_events";
 import { log } from "@/lib/observability/logger";
+import { getClaimSnapshot } from "@/lib/claims/snapshot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -93,14 +94,30 @@ export async function POST(req: NextRequest) {
     .order("created_at", { ascending: true })
     .limit(40);
 
+  // Pull the current snapshot — Sam's working memory of this claim — and
+  // inject it into the system prompt EVERY turn. This is the single source
+  // of truth for "what we already know," so Sam never re-asks for a fact
+  // that's already on file.
+  const snapshot = await getClaimSnapshot(claim.id).catch(() => null);
+
   const systemPrompt =
     loadPersonaPrompt(user.preferred_lang === "es" ? "es" : "en") +
-    `\n\n# Runtime context\n` +
-    `Caller claim_id: ${claim.id}\n` +
-    `Caller user_id: ${user.id}\n` +
+    `\n\n# Runtime context (channel: chat)\n` +
     `Stage: ${claim.stage}\n` +
-    `Kind: ${claim.kind}\n` +
-    `Channel: chat (no video).`;
+    `Kind: ${claim.kind}\n\n` +
+    `# Known state for THIS claim — read before every turn\n` +
+    (snapshot
+      ? `${snapshot.human_summary}\n\n` +
+        `Structured snapshot (for your reasoning — never read field names aloud):\n` +
+        "```json\n" +
+        JSON.stringify(snapshot, null, 2) +
+        "\n```\n\n" +
+        `Rules: (1) Do not ask for any fact already present above. ` +
+        `(2) Pick your next move from "still_needed", not from a fixed script. ` +
+        `(3) If the user mentioned a fact in "recent_dialogue" that is NOT yet ` +
+        `in "facts_on_file", capture it immediately with the appropriate action ` +
+        `(e.g. record_incident_details with a location, peril, or time).`
+      : `(snapshot unavailable — proceed normally)`);
 
   type Msg = import("@anthropic-ai/sdk").Anthropic.Messages.MessageParam;
   const messages: Msg[] = (history ?? [])
@@ -211,10 +228,13 @@ export async function POST(req: NextRequest) {
                 caller: { claim_id: claim.id, user_id: user.id!, session_id: sessionId },
                 claim,
               });
+              const postSnapshot = await getClaimSnapshot(claim.id).catch(
+                () => null,
+              );
               toolResults.push({
                 type: "tool_result",
                 tool_use_id: tu.id,
-                content: JSON.stringify(result),
+                content: JSON.stringify({ result, known_state: postSnapshot }),
               });
               send({ type: "tool_result", name: tu.name, result });
             } catch (err) {
